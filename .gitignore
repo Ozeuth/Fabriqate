@@ -1,0 +1,14 @@
+# Hide the private keys
+*.env
+
+# Ignore superfluous intellij
+/.idea
+
+# Ignore superfluous production
+/build
+
+# Ignore dependencies
+/node_modules
+
+# Prevent lock changes
+package-lock.json

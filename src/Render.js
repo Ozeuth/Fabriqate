@@ -48,9 +48,9 @@ export default class Render extends React.Component {
       objectPanelVisibility: "hidden",
       objectNew: null,
       objectPanelContent: window.objects ? Array.from(window.objects.keys()) : [],
-      objectPanelFocal: window.focalObject ? window.focalObject[0] : null,
+      objectPanelFocal: null,
       materialPanelVisibility: "hidden",
-      materialPanelContent: window.focalObject ? window.focalObject[1].map(mesh => mesh.name) : [],
+      materialPanelContent: [],
       materialPanelFocal: null
     };
     this.toggleObjects = this.toggleObjects.bind(this);
@@ -64,7 +64,7 @@ export default class Render extends React.Component {
 
   toggleObjects() {
     const visibility = this.state.objectPanelVisibility === "hidden" ? "visible" : "hidden";
-    const intendedFocal = this.state.objectPanelFocal ? this.state.objectPanelFocal : window.focalObject[0];
+    const intendedFocal = this.state.objectPanelFocal ? this.state.objectPanelFocal : null;
     this.setState({
       objectPanelVisibility: visibility,
       objectPanelContent: Array.from(window.objects.keys()),
@@ -100,11 +100,10 @@ export default class Render extends React.Component {
   }
 
   focusObject(event) {
-    window.focalObject = [event.target.id, window.objects.get(event.target.id)];
     this.setState({
-      objectPanelFocal: window.focalObject[0],
+      objectPanelFocal: event.target.id,
       materialPanelVisibility: "hidden",
-      materialPanelFocal: window.focalObject[1].map(mesh => mesh.name)
+      materialPanelFocal: window.objects.get(event.target.id).map(mesh => mesh.name)
     });
   }
 
@@ -123,8 +122,7 @@ export default class Render extends React.Component {
       })
     }).then(res => {
       if (res.status === 200) {
-        if (window.focalObject[0] === objectName) {
-          window.focalObject = [null, null];
+        if (this.state.objectPanelFocal === objectName) {
           this.setState({
             objectPanelFocal: null
           });
@@ -143,9 +141,10 @@ export default class Render extends React.Component {
 
   toggleMaterials() {
     const visibility = this.state.materialPanelVisibility === "hidden" ? "visible" : "hidden";
+    const content = this.state.objectPanelFocal ? window.objects.get(this.state.objectPanelFocal).map(mesh => mesh.name) : [];
     this.setState({
       materialPanelVisibility: visibility,
-      materialPanelContent: window.focalObject ? window.focalObject[1].map(mesh => mesh.name) : []
+      materialPanelContent: content
     });
   }
 
@@ -223,7 +222,6 @@ export default class Render extends React.Component {
     LOAD.OBJFileLoader.SKIP_MATERIALS = true;    // Ignores .mtl file data
 
     window.objects = new Map();
-    window.focalObject = [null, null];
     if (window.newProject) {
       // PBR new project setup
       const formData = new FormData();
@@ -296,26 +294,26 @@ export default class Render extends React.Component {
                     <span id={objectName} style={{fontSize: "100%", fontFamily: 'inherit'}} onClick={this.focusObject}>{objectName}</span>
                     <button id={objectName + " Materials"} style={{
                       ...styles.small_button,
-                      ...{visibility: this.state.objectPanelFocal === objectName ? "visible" : "hidden",
+                      ...{visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
                           margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.toggleMaterials}>Materials</button>
                     <button id={objectName + " Remove" } style={{
                       ...styles.small_button,
-                      ...{visibility: this.state.objectPanelFocal === objectName ? "visible" : "hidden",
+                      ...{visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
                           margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.removeObject}>Remove</button>
                     <ul id = {objectName + " materialList"} style = {{
                       listStyleType: "none",
                       margin: '0',
-                      visibility: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? "visible" : "hidden",
+                      visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? "visible" : "hidden",
                       height: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? '100%' : '0px',
                       width: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? '100%' : '0px',
                       overflow: "hidden",
                     }}>
                       {this.state.materialPanelContent.map(materialName =>
-                        <li id = {materialName} style={{display: 'inline-block', backgroundColor: (this.state.objectPanelFocal === objectName && this.state.materialPanelFocal === materialName ? ButtonColor.DOUBLE_ACTIVE : ButtonColor.ACTIVE)}} onClick={this.focusMaterial}>{materialName}</li>
+                        <li id = {materialName} style={{display: 'block', backgroundColor: (this.state.objectPanelFocal === objectName && this.state.materialPanelFocal === materialName ? ButtonColor.DOUBLE_ACTIVE : ButtonColor.ACTIVE)}} onClick={this.focusMaterial}>{materialName}</li>
                       )}
                     </ul>
                   </li>

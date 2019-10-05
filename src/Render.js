@@ -89,7 +89,6 @@ export default class Render extends React.Component {
         body: formData
       }).then(res => {
         if (res.status === 200) {
-          // this.state.objectNew.name
           res.text().then(text => {
             window.rendFunc(window.scene, "./uploads/", text, false, this);
           });
@@ -101,7 +100,6 @@ export default class Render extends React.Component {
   }
 
   focusObject(event) {
-    console.log(window.objects);
     window.focalObject = [event.target.id, window.objects.get(event.target.id)];
     this.setState({
       objectPanelFocal: window.focalObject[0],
@@ -177,37 +175,29 @@ export default class Render extends React.Component {
       // Black = Smooth, White = Rough
       pbr.bumpTexture = new BABYLON.Texture(Ring_Damaged_Normal, rendScene); // Normal
 
-      // Implement a Lock around here???
-      const meshCount = rendScene.meshes.length;
-      BABYLON.SceneLoader.Append(rendPath, rendName, rendScene, function (Scene) {
-        // If there are multiple materials per object, the objects are split into sub objects by Babylon
-        let counter = 0;
-        let newMeshes = [];
-        for (let index = meshCount; index < Scene.meshes.length; index++) {
-          let newMesh = Scene.meshes[index];
-          newMesh.name = rendName + "_" + counter;
-          console.log(newMesh.name);
-
+      BABYLON.SceneLoader.LoadAssetContainer(rendPath, rendName, rendScene, function(container) {
+        const newMeshes = container.meshes;
+        for (let index = 0; index < newMeshes.length; index++) {
+          const newMesh = newMeshes[index];
+          newMesh.name = rendName + "_" + index;
           newMesh.material = pbr;
           const positions = newMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
           const indices = newMesh.getIndices();
           const normals = newMesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
           BABYLON.VertexData.ComputeNormals(positions, indices, normals);
           newMesh.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals, true, true);
-          counter++;
-          newMeshes.push(newMesh);
         }
         window.objects = window.objects.set(rendName, newMeshes);
-        console.log(window.objects);
         if (setUp) {
-          Scene.createDefaultCameraOrLight(true, true, true);
-          Scene.activeCamera.alpha += Math.PI;
+          rendScene.createDefaultCameraOrLight(true, true, true);
+          rendScene.activeCamera.alpha += Math.PI;
         } else {
           render.setState({
             objectPanelContent: Array.from(window.objects.keys()),
             objectNew: null
           });
         }
+        container.addAllToScene();
       });
     };
     // Some clean up from prior
@@ -266,7 +256,6 @@ export default class Render extends React.Component {
           }
           window.rendFunc(scene, objectPath, objectName, true);
         });
-        console.log(scene.meshes);
       })
     }
     window.scene = scene;

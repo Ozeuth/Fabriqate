@@ -2,7 +2,8 @@ import React from 'react';
 import {Redirect} from 'react-router-dom';
 
 export const ButtonColor = {
-  ACTIVE: "#404040",
+  DOUBLE_ACTIVE: "#404040",
+  ACTIVE: "#808080",
   INACTIVE: "#D0D0D0",
 };
 

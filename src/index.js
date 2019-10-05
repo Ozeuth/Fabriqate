@@ -17,7 +17,7 @@ import * as serviceWorker from './serviceWorker';
   // Change these when you add/ remove objects from the render
   objects: map of object name to array of object meshes
   focalObject: length 2 array of focused object name, [focused object meshes]
-  meshCount: number of meshes recognized internally by Babylon. Tracks an object's meshes
+  focalMaterial: length 2 array of focused mesh name, focused mesh
 
   tempHome: purely for code purposes, deleted
 */

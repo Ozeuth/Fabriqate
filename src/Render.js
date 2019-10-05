@@ -48,7 +48,10 @@ export default class Render extends React.Component {
       objectPanelVisibility: "hidden",
       objectNew: null,
       objectPanelContent: window.objects ? Array.from(window.objects.keys()) : [],
-      objectPanelFocal: window.focalObject ? window.focalObject[0] : null
+      objectPanelFocal: window.focalObject ? window.focalObject[0] : null,
+      materialPanelVisibility: "hidden",
+      materialPanelContent: window.focalObject ? window.focalObject[1].map(mesh => mesh.name) : [],
+      materialPanelFocal: null
     };
     this.toggleObjects = this.toggleObjects.bind(this);
     this.chooseObject = this.chooseObject.bind(this);
@@ -56,6 +59,7 @@ export default class Render extends React.Component {
     this.focusObject = this.focusObject.bind(this);
     this.removeObject = this.removeObject.bind(this);
     this.toggleMaterials = this.toggleMaterials.bind(this);
+    this.focusMaterial = this.focusMaterial.bind(this);
   }
 
   toggleObjects() {
@@ -97,9 +101,12 @@ export default class Render extends React.Component {
   }
 
   focusObject(event) {
+    console.log(window.objects);
     window.focalObject = [event.target.id, window.objects.get(event.target.id)];
     this.setState({
-      objectPanelFocal: window.focalObject[0]
+      objectPanelFocal: window.focalObject[0],
+      materialPanelVisibility: "hidden",
+      materialPanelFocal: window.focalObject[1].map(mesh => mesh.name)
     });
   }
 
@@ -126,7 +133,6 @@ export default class Render extends React.Component {
         }
         const meshes = window.objects.get(objectName);
         window.objects.delete(objectName);
-        window.meshCount -= meshes.length;
         meshes.forEach(mesh => {
           mesh.dispose();
         });
@@ -137,14 +143,23 @@ export default class Render extends React.Component {
     });
   }
 
-  toggleMaterials(event) {
-    const objectName = event.target.id.replace(' Materials', '');
+  toggleMaterials() {
+    const visibility = this.state.materialPanelVisibility === "hidden" ? "visible" : "hidden";
+    this.setState({
+      materialPanelVisibility: visibility,
+      materialPanelContent: window.focalObject ? window.focalObject[1].map(mesh => mesh.name) : []
+    });
+  }
+
+  focusMaterial(event) {
+    this.setState({
+      materialPanelFocal: event.target.id
+    });
   }
 
   // --- RENDER CONTROL --- //
 
   make(e) {
-    window.meshCount = 0;
     window.rendFunc = function(rendScene, rendPath, rendName, setUp, render) {
       const pbr = new BABYLON.PBRMaterial("pbr", rendScene);
       pbr.metallic = 1.0;
@@ -162,13 +177,16 @@ export default class Render extends React.Component {
       // Black = Smooth, White = Rough
       pbr.bumpTexture = new BABYLON.Texture(Ring_Damaged_Normal, rendScene); // Normal
 
+      // Implement a Lock around here???
+      const meshCount = rendScene.meshes.length;
       BABYLON.SceneLoader.Append(rendPath, rendName, rendScene, function (Scene) {
         // If there are multiple materials per object, the objects are split into sub objects by Babylon
         let counter = 0;
         let newMeshes = [];
-        for (let index = window.meshCount; index < Scene.meshes.length; index++) {
+        for (let index = meshCount; index < Scene.meshes.length; index++) {
           let newMesh = Scene.meshes[index];
           newMesh.name = rendName + "_" + counter;
+          console.log(newMesh.name);
 
           newMesh.material = pbr;
           const positions = newMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
@@ -179,8 +197,8 @@ export default class Render extends React.Component {
           counter++;
           newMeshes.push(newMesh);
         }
-        window.meshCount = Scene.meshes.length;
         window.objects = window.objects.set(rendName, newMeshes);
+        console.log(window.objects);
         if (setUp) {
           Scene.createDefaultCameraOrLight(true, true, true);
           Scene.activeCamera.alpha += Math.PI;
@@ -248,6 +266,7 @@ export default class Render extends React.Component {
           }
           window.rendFunc(scene, objectPath, objectName, true);
         });
+        console.log(scene.meshes);
       })
     }
     window.scene = scene;
@@ -291,13 +310,25 @@ export default class Render extends React.Component {
                       ...{visibility: this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
-                          margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}}>Materials</button>
+                          margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.toggleMaterials}>Materials</button>
                     <button id={objectName + " Remove" } style={{
                       ...styles.small_button,
                       ...{visibility: this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
                           margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.removeObject}>Remove</button>
+                    <ul id = {objectName + " materialList"} style = {{
+                      listStyleType: "none",
+                      margin: '0',
+                      visibility: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? "visible" : "hidden",
+                      height: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? '100%' : '0px',
+                      width: this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? '100%' : '0px',
+                      overflow: "hidden",
+                    }}>
+                      {this.state.materialPanelContent.map(materialName =>
+                        <li id = {materialName} style={{display: 'inline-block', backgroundColor: (this.state.objectPanelFocal === objectName && this.state.materialPanelFocal === materialName ? ButtonColor.DOUBLE_ACTIVE : ButtonColor.ACTIVE)}} onClick={this.focusMaterial}>{materialName}</li>
+                      )}
+                    </ul>
                   </li>
               )}
             </ul>

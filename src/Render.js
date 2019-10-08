@@ -3,11 +3,16 @@ import {Engine, Scene, Texture} from 'react-babylonjs'
 import * as BABYLON from 'babylonjs';
 import * as LOAD from 'babylonjs-loaders';
 import {ButtonColor} from "./Begin";
-import Ring_Damaged_Gold from './Render_Textures/ring_color.png'
-import Ring_Damaged_AO from './Render_Textures/ring_ao.png'
-import Ring_Damaged_Metal from './Render_Textures/ring_metal.png'
-import Ring_Damaged_Rough from './Render_Textures/ring_rough.png'
-import Ring_Damaged_Normal from './Render_Textures/ring_normal.png'
+import Ring_Color from './Render_Textures/ring_color.png'
+import Ring_Ao from './Render_Textures/ring_ao.png'
+import Ring_Metal from './Render_Textures/ring_metal.png'
+import Ring_Rough from './Render_Textures/ring_rough.png'
+import Ring_Normal from './Render_Textures/ring_normal.png'
+const ring_color = 'Ring_color.png';
+const ring_ao = 'Ring_ao.png';
+const ring_rough = 'Ring_rough.png';
+const ring_metal = 'Ring_metal.png';
+const ring_normal = 'Ring_normal.png';
 
 export const TextureType = {
   COLOR: 'color',
@@ -274,7 +279,7 @@ export default class Render extends React.Component {
     window.objects = new Map();
     window.textures = new Map();
     if (window.newProject) {
-      // PBR new project setup
+      // Upload Default New Object
       let formData = new FormData();
       formData.append('user', window.user);
       formData.append('file', null);
@@ -284,16 +289,16 @@ export default class Render extends React.Component {
         body: formData
       }).then(res => {
         if (res.status === 200) {
+          // Render Default New Object
           window.objFunc(scene, "", "render.obj", true, null);
+          // Upload Default New Textures
           formData = new FormData();
           formData.append('user', window.user);
           formData.append('projectName', window.project);
           formData.append('objectName', 'render.obj');
           const textureTypes = [TextureType.COLOR, TextureType.AO, TextureType.ROUGH, TextureType.METAL, TextureType.NORMAL];
-          const texturePaths = [Ring_Damaged_Gold, Ring_Damaged_AO, Ring_Damaged_Rough, Ring_Damaged_Metal, Ring_Damaged_Normal];
-
+          const texturePaths = [ring_color, ring_ao, ring_rough, ring_metal, ring_normal];
           let allTexturePromises = [];
-          let counter = 0;
           textureTypes.forEach(textureType => {
             formData.set('textureType', textureType);
             formData.set('file', null);
@@ -303,14 +308,15 @@ export default class Render extends React.Component {
               body: formData
             }).then();
             allTexturePromises.push(promise);
-            counter++;
           });
           Promise.all(allTexturePromises).then(function () {
+            // Render Default New Textures
             window.textureFunc(scene, "render.obj_0", texturePaths, textureTypes);
           });
         }
       });
     } else {
+      // Download Project Objects
       fetch('/getObjects', {
         method:'post',
         headers: {
@@ -326,8 +332,66 @@ export default class Render extends React.Component {
           if (objectName === "render.obj") {
             objectPath = "";
           }
+          // Render Project Objects
           window.objFunc(scene, objectPath, objectName, true, null);
-          // We get the materials and their supporting
+          // Download Project Textures
+          fetch('/getTextures', {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }, body: JSON.stringify({
+              user: window.user,
+              projectName: window.project,
+              objectName: objectName.toString(),
+              meshIndex: "null"
+            })
+          }).then(res => res.json()).then(foundData => { // [[textureName, textureIndex, textureType],...]
+            let maxIndex = 0;
+            foundData.forEach(data => {
+              const textureIndex = data[1];
+              if (parseInt(textureIndex, 10) > maxIndex) {maxIndex = parseInt(textureIndex, 10)}
+            });
+            for (let index = 0; index < maxIndex + 1; index++) {
+              let texturePaths = [];
+              let textureTypes = [];
+              foundData.forEach(data => {
+                const textureIndex = data[1];
+                if (parseInt(textureIndex, 10) === index) {
+                  const textureName = data[0];
+                  const textureType = data[2];
+                  let texturePath = null;
+                  if (textureName === ring_color || textureName === ring_ao || textureName === ring_rough
+                    || textureName === ring_metal || textureName === ring_normal) {
+                    switch (textureName) {
+                      case ring_color:
+                        texturePath = Ring_Color;
+                        break;
+                      case ring_ao:
+                        texturePath = Ring_Ao;
+                        break;
+                      case ring_rough:
+                        texturePath = Ring_Rough;
+                        break;
+                      case ring_metal:
+                        texturePath = Ring_Metal;
+                        break;
+                      case ring_normal:
+                        texturePath = Ring_Normal;
+                        break;
+                      default:
+                    }
+                  } else {
+                    texturePath = './uploads' + textureName;
+                  }
+                  texturePaths.push(texturePath);
+                  textureTypes.push(textureType);
+                }
+              });
+              // Render Project Textures
+              window.textureFunc(scene, objectName + "_" + index, texturePaths, textureTypes);
+            }
+          })
         });
       })
     }

@@ -1,13 +1,21 @@
 import React from 'react';
-import {Engine, Scene} from 'react-babylonjs'
+import {Engine, Scene, Texture} from 'react-babylonjs'
 import * as BABYLON from 'babylonjs';
 import * as LOAD from 'babylonjs-loaders';
 import {ButtonColor} from "./Begin";
-import Ring_Damaged_Gold from './Render_Textures/Ring_Damaged_Gold.png'
-import Ring_Damaged_AO from './Render_Textures/Ring_Damaged_AO.png'
-import Ring_Damaged_Metal from './Render_Textures/Ring_Damaged_Metal.png'
-import Ring_Damaged_Rough from './Render_Textures/Ring_Damaged_Roughness.png'
-import Ring_Damaged_Normal from './Render_Textures/Ring_Damaged_Normal.png'
+import Ring_Damaged_Gold from './Render_Textures/ring_color.png'
+import Ring_Damaged_AO from './Render_Textures/ring_ao.png'
+import Ring_Damaged_Metal from './Render_Textures/ring_metal.png'
+import Ring_Damaged_Rough from './Render_Textures/ring_rough.png'
+import Ring_Damaged_Normal from './Render_Textures/ring_normal.png'
+
+export const TextureType = {
+  COLOR: 'color',
+  AO: 'ao',
+  ROUGH: 'rough',
+  METAL: 'metal',
+  NORMAL: 'normal'
+};
 
 let styles = {
   root: {
@@ -90,7 +98,7 @@ export default class Render extends React.Component {
       }).then(res => {
         if (res.status === 200) {
           res.text().then(text => {
-            window.rendFunc(window.scene, "./uploads/", text, false, this);
+            window.objFunc(window.scene, "./uploads/", text, false, this);
           });
         }
       });
@@ -155,31 +163,31 @@ export default class Render extends React.Component {
   }
 
   // --- RENDER CONTROL --- //
-
   make(e) {
-    window.rendFunc = function(rendScene, rendPath, rendName, setUp, render) {
-      const pbr = new BABYLON.PBRMaterial("pbr", rendScene);
-      pbr.metallic = 1.0;
-      pbr.roughness = 1.0;
-      pbr.useRoughnessFromMetallicTextureAlpha = false;
-      pbr.useRoughnessFromMetallicTextureGreen = false;
-      pbr.useMetallnessFromMetallicTextureBlue = true;
-      pbr.reflectionTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("render.dds", rendScene);
-
-      pbr.albedoTexture = new BABYLON.Texture(Ring_Damaged_Gold, rendScene); // Color
-      pbr.ambientTexture = new BABYLON.Texture(Ring_Damaged_AO, rendScene); // Shadow
-      pbr.metallicTexture = new BABYLON.Texture(Ring_Damaged_Metal, rendScene); // Metal
-      // Black = Organic, White = Metal
-      pbr.microSurfaceTexture = new BABYLON.Texture(Ring_Damaged_Rough, rendScene); // Roughness
-      // Black = Smooth, White = Rough
-      pbr.bumpTexture = new BABYLON.Texture(Ring_Damaged_Normal, rendScene); // Normal
-
-      BABYLON.SceneLoader.LoadAssetContainer(rendPath, rendName, rendScene, function(container) {
+    window.objFunc = function(scene, rendPath, rendName, setUp, render) {
+      BABYLON.SceneLoader.LoadAssetContainer(rendPath, rendName, scene, function(container) {
         const newMeshes = container.meshes;
         for (let index = 0; index < newMeshes.length; index++) {
           const newMesh = newMeshes[index];
           newMesh.name = rendName + "_" + index;
+          // Material Basic Setup
+          const pbr = new BABYLON.PBRMaterial("pbr", scene);
+          pbr.metallic = 1.0;
+          pbr.roughness = 1.0;
+          pbr.useRoughnessFromMetallicTextureAlpha = false;
+          pbr.useRoughnessFromMetallicTextureGreen = false;
+          pbr.useMetallnessFromMetallicTextureBlue = true;
+          pbr.reflectionTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("render.dds", scene);
           newMesh.material = pbr;
+          let textureInfo ={
+            color: null,
+            ao: null,
+            rough: null,
+            metal: null,
+            normal: null
+          };
+          window.textures = window.textures.set(newMesh, textureInfo);
+          // Added Normal Data
           const positions = newMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
           const indices = newMesh.getIndices();
           const normals = newMesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
@@ -188,8 +196,8 @@ export default class Render extends React.Component {
         }
         window.objects = window.objects.set(rendName, newMeshes);
         if (setUp) {
-          rendScene.createDefaultCameraOrLight(true, true, true);
-          rendScene.activeCamera.alpha += Math.PI;
+          scene.createDefaultCameraOrLight(true, true, true);
+          scene.activeCamera.alpha += Math.PI;
         } else {
           render.setState({
             objectPanelContent: Array.from(window.objects.keys()),
@@ -198,6 +206,47 @@ export default class Render extends React.Component {
         }
         container.addAllToScene();
       });
+    };
+    window.textureFunc = function(scene, meshName, texturePaths, textureTypes) {
+      let mesh = null;
+      const allMeshes = Array.from(window.textures.keys());
+      allMeshes.forEach(found => {
+        if (meshName === found.name) {mesh = found}
+      });
+      let counter = 0;
+      const textureInfo = window.textures.get(mesh);
+      texturePaths.forEach(texturePath => {
+        switch (textureTypes[counter]) {
+          case TextureType.COLOR:
+            if (mesh.material.albedoTexture) {mesh.material.albedoTexture.dispose()}
+            mesh.material.albedoTexture = new BABYLON.Texture(texturePath, scene);
+            textureInfo.color = texturePath;
+            break;
+          case TextureType.AO:
+            if (mesh.material.ambientTexture) {mesh.material.ambientTexture.dispose()}
+            mesh.material.ambientTexture = new BABYLON.Texture(texturePath, scene);
+            textureInfo.ao = texturePath;
+            break;
+          case TextureType.ROUGH:
+            if (mesh.material.microSurfaceTexture) {mesh.material.microSurfaceTexture.dispose()}
+            mesh.material.microSurfaceTexture = new BABYLON.Texture(texturePath, scene);
+            textureInfo.rough = texturePath;
+            break;
+          case TextureType.METAL:
+            if (mesh.material.metallicTexture) {mesh.material.metallicTexture.dispose()}
+            mesh.material.metallicTexture = new BABYLON.Texture(texturePath, scene);
+            textureInfo.metal = texturePath;
+            break;
+          case TextureType.NORMAL:
+            if (mesh.material.bumpTexture) {mesh.material.bumpTexture.dispose()}
+            mesh.material.bumpTexture = new BABYLON.Texture(texturePath, scene);
+            textureInfo.normal = texturePath;
+            break;
+          default:
+        }
+        counter++;
+      });
+      window.textures.set(meshName, textureInfo);
     };
     // Some clean up from prior
     delete window.tempHome;
@@ -221,10 +270,12 @@ export default class Render extends React.Component {
     LOAD.OBJFileLoader.OPTIMIZE_WITH_UV = true;  // Prevents UV Seam issues
     LOAD.OBJFileLoader.SKIP_MATERIALS = true;    // Ignores .mtl file data
 
+    window.scene = scene;
     window.objects = new Map();
+    window.textures = new Map();
     if (window.newProject) {
       // PBR new project setup
-      const formData = new FormData();
+      let formData = new FormData();
       formData.append('user', window.user);
       formData.append('file', null);
       formData.append('projectName', window.project);
@@ -233,7 +284,30 @@ export default class Render extends React.Component {
         body: formData
       }).then(res => {
         if (res.status === 200) {
-          window.rendFunc(scene, "", "render.obj", true);
+          window.objFunc(scene, "", "render.obj", true, null);
+          formData = new FormData();
+          formData.append('user', window.user);
+          formData.append('projectName', window.project);
+          formData.append('objectName', 'render.obj');
+          const textureTypes = [TextureType.COLOR, TextureType.AO, TextureType.ROUGH, TextureType.METAL, TextureType.NORMAL];
+          const texturePaths = [Ring_Damaged_Gold, Ring_Damaged_AO, Ring_Damaged_Rough, Ring_Damaged_Metal, Ring_Damaged_Normal];
+
+          let allTexturePromises = [];
+          let counter = 0;
+          textureTypes.forEach(textureType => {
+            formData.set('textureType', textureType);
+            formData.set('file', null);
+            formData.set('textureIndex', '0');
+            let promise = fetch('/newTexture', {
+              method: 'post',
+              body: formData
+            }).then();
+            allTexturePromises.push(promise);
+            counter++;
+          });
+          Promise.all(allTexturePromises).then(function () {
+            window.textureFunc(scene, "render.obj_0", texturePaths, textureTypes);
+          });
         }
       });
     } else {
@@ -252,11 +326,11 @@ export default class Render extends React.Component {
           if (objectName === "render.obj") {
             objectPath = "";
           }
-          window.rendFunc(scene, objectPath, objectName, true);
+          window.objFunc(scene, objectPath, objectName, true, null);
+          // We get the materials and their supporting
         });
       })
     }
-    window.scene = scene;
     window.addEventListener("resize", function () {
       canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;

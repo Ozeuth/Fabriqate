@@ -242,3 +242,41 @@ app.post('/getObjects', function (req, res) {
     }
   });
 });
+
+app.post('/newTexture', upload, function(req, res) {
+  const user = req.body.user;
+  const projectName = req.body.projectName;
+  const objectName = req.body.objectName;
+  const textureType = req.body.textureType;
+  const textureIndex = req.body.textureIndex;
+  let fileName = './Render_Textures/Ring_' + textureType + '.png';
+
+  let file = null;
+  if (req.file) {
+    fileName = req.file.filename;
+    file = fs.readFileSync(path.join(buildUploadPath, fileName));
+    const params = {
+      Bucket: 'fabriqate',
+      Key: fileName,
+      Body: file,
+      ACL: 'public-read'
+    };
+    s3.upload(params, function(err) {
+      if (err) {
+        console.log("error in uploading to bucket:" + err);
+        res.status(201).send();
+      }
+    });
+  }
+  connection.query("REPLACE INTO " + textureType + " (`" + textureType + "_index`, `" + textureType + "_name`, `"
+    + textureType + "_original`, `object_project_users_username`, `object_project_project_name`, `object_object_name`) VALUES ("
+    + "'" + textureIndex + "','" + fileName + "','" + fileName + "','" + user + "','" + projectName + "','" + objectName + "')" ,
+    function (err) {
+    if (err) {
+      console.log("error in querying database:" + err);
+      res.status(201).send();
+    } else {
+      res.status(200).send(fileName);
+    }
+  });
+});

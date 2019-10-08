@@ -14,8 +14,13 @@ import * as serviceWorker from './serviceWorker';
   scene: scene of render
   rendFunc: function to add object to render
 
-  // Change these when you add/ remove objects from the render
   objects: map of object name to array of object meshes
+  textures: map of each mesh to textureInfo, which may contain:
+    - color: name of Color texture
+    - ao: name of AO texture
+    - rough: name of Roughness texture
+    - metal: name of Metal texture
+    - normal: name of Normal texture
 
   tempHome: purely for code purposes, deleted
 */

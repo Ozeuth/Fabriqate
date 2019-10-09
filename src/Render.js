@@ -212,7 +212,6 @@ export default class Render extends React.Component {
         if (setUp) {
           scene.createDefaultCameraOrLight(true, true, true);
           scene.activeCamera.alpha += Math.PI;
-          console.log(scene.activeCamera);
         } else {
           render.setState({
             objectPanelContent: Array.from(window.objects.keys()),
@@ -261,7 +260,7 @@ export default class Render extends React.Component {
         }
         counter++;
       });
-      window.textures.set(meshName, textureInfo);
+      window.textures = window.textures.set(meshName, textureInfo);
     };
     // Some clean up from prior
     delete window.tempHome;

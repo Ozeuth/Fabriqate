@@ -3,6 +3,7 @@ import {Engine, Scene, Texture} from 'react-babylonjs'
 import * as BABYLON from 'babylonjs';
 import * as LOAD from 'babylonjs-loaders';
 import {ButtonColor} from "./Begin";
+import Textures from './Textures';
 import Ring_Color from './Render_Textures/ring_color.png'
 import Ring_Ao from './Render_Textures/ring_ao.png'
 import Ring_Metal from './Render_Textures/ring_metal.png'
@@ -22,7 +23,7 @@ export const TextureType = {
   NORMAL: 'normal'
 };
 
-let styles = {
+export const styles = {
   root: {
     backgroundImage: 'url("./render_background.png")',
     position: 'absolute',
@@ -460,6 +461,7 @@ export default class Render extends React.Component {
           </div>
         </div>
         <button id="download_button" style={{...styles.default_button, ...{right: '10%', bottom: '6%'}}}> Download All </button>
+        <Textures materialPanelFocal = {this.state.materialPanelFocal}/>
       </div>
     );
   }

@@ -35,6 +35,13 @@ export const styles = {
     backgroundRepeat: 'no-repeat',
     overflow: 'hidden',
   },
+  panel: {
+    width: '30%',
+    position: 'absolute',
+    display: 'inline-block',
+    overflow: 'auto',
+    backgroundColor: ButtonColor.INACTIVE,
+  },
   default_button: {
     position: 'absolute',
     width: "100px",
@@ -122,7 +129,7 @@ export default class Render extends React.Component {
   }
 
   removeObject(event) {
-    const objectName = event.target.id.replace(' Remove', '');
+    const objectName = event.target.id.replace("Remove", "");
     fetch('/removeObject', {
       method: 'delete',
       headers: {
@@ -201,18 +208,20 @@ export default class Render extends React.Component {
           newMesh.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals, true, true);
         }
         window.objects = window.objects.set(rendName, newMeshes);
+        container.addAllToScene();
         if (setUp) {
           scene.createDefaultCameraOrLight(true, true, true);
           scene.activeCamera.alpha += Math.PI;
+          console.log(scene.activeCamera);
         } else {
           render.setState({
             objectPanelContent: Array.from(window.objects.keys()),
             objectNew: null
           });
         }
-        container.addAllToScene();
       });
     };
+    // TODO: Async error, Can be called before window.objFunc finishes!
     window.textureFunc = function(scene, meshName, texturePaths, textureTypes) {
       let mesh = null;
       const allMeshes = Array.from(window.textures.keys());
@@ -413,37 +422,28 @@ export default class Render extends React.Component {
           <Engine canvasId="sample-canvas">
             <Scene onSceneMount={this.make}/>
           </Engine>
-        <button id="object_toggle_button" style = {{...styles.default_button, ...{right: '10%', top: '6%'}}} onClick={this.toggleObjects}> Objects </button>
-        <div id="objects_panel" style = {{
-          right: '10%',
-          top: 'calc(6% + 25px)',
-          width: '30%',
-          position: 'absolute',
-          display: 'inline-block',
-          overflow: 'auto',
-          backgroundColor: ButtonColor.INACTIVE,
-          visibility: this.state.objectPanelVisibility
-        }}>
+        <button id="objectToggleButton" style = {{...styles.default_button, ...{right: '10%', top: '6%'}}} onClick={this.toggleObjects}> Objects </button>
+        <div id="objectsPanel" style = {{...styles.panel, ...{right: '10%', top: 'calc(6% + 25px)', visibility: this.state.objectPanelVisibility}}}>
           <input type="file" name="file" onChange={this.chooseObject}/>
-          <button id="object_add_button" style={{...styles.default_button, ...{right: '0%', top: '0%'}}} onClick={this.newObject}> Add Object </button>
+          <button id="objectAddButton" style={{...styles.default_button, ...{right: '0%', top: '0%'}}} onClick={this.newObject}> Add Object </button>
           <div id = "object">
             <ul id = "objectList" style={{ listStyleType: "none", margin: '0'}}>
               {this.state.objectPanelContent.map(objectName =>
                   <li style={{display: 'inline-block', backgroundColor: (this.state.objectPanelFocal === objectName ? ButtonColor.ACTIVE : ButtonColor.INACTIVE )}}>
                     <span id={objectName} style={{fontSize: "100%", fontFamily: 'inherit'}} onClick={this.focusObject}>{objectName}</span>
-                    <button id={objectName + " Materials"} style={{
+                    <button id={objectName + "Materials"} style={{
                       ...styles.small_button,
                       ...{visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
                           margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.toggleMaterials}>Materials</button>
-                    <button id={objectName + " Remove" } style={{
+                    <button id={objectName + "Remove" } style={{
                       ...styles.small_button,
                       ...{visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName ? "visible" : "hidden",
                           height: this.state.objectPanelFocal === objectName ?  '100%' : '0px',
                           width: this.state.objectPanelFocal === objectName ? '100px' : '0px',
                           margin: this.state.objectPanelFocal === objectName ? '4px' : '0px'}}} onClick={this.removeObject}>Remove</button>
-                    <ul id = {objectName + " materialList"} style = {{
+                    <ul id = {objectName + "materialList"} style = {{
                       listStyleType: "none",
                       margin: '0',
                       visibility: this.state.objectPanelVisibility === "visible" && this.state.objectPanelFocal === objectName && this.state.materialPanelVisibility === "visible" ? "visible" : "hidden",
@@ -460,7 +460,7 @@ export default class Render extends React.Component {
             </ul>
           </div>
         </div>
-        <button id="download_button" style={{...styles.default_button, ...{right: '10%', bottom: '6%'}}}> Download All </button>
+        <button id="downloadButton" style={{...styles.default_button, ...{right: '10%', bottom: '6%'}}}> Download All </button>
         <Textures materialPanelFocal = {this.state.materialPanelFocal}/>
       </div>
     );

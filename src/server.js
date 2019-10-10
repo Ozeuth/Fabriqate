@@ -345,24 +345,34 @@ app.post('/getTextures', function(req, res) {
           }
           foundData.push([textureName, textureIndex, textureType]);
         });
-        if (allTexturePromises) {
+        if (allTexturePromises.length !== 0) {
           Promise.all(allTexturePromises).then(function (values) {
             let counter = 0;
+            let writeCallBacksRemaining = values.length;
             values.forEach(data => {
-              fs.writeFile(path.join(buildUploadPath, allPromiseNames[counter]), data.Body.toString('utf-8'), (err) => {
+              console.log(data);
+              fs.writeFile(path.join(buildUploadPath, allPromiseNames[counter]), data.Body, (err) => {
                 if (err) {
                   console.log("error in creating locally");
                   res.status(201).send();
+                }
+                writeCallBacksRemaining--;
+                if (writeCallBacksRemaining === 0) {
+                  callBacksRemaining--;
+                  if (callBacksRemaining === 0) {
+                    res.status(200).send(foundData);
+                  }
                 }
               });
               counter++;
             });
           });
+        } else {
+          callBacksRemaining--;
+          if (callBacksRemaining === 0) {
+            res.status(200).send(foundData);
+          }
         }
-      }
-      callBacksRemaining--;
-      if (callBacksRemaining === 0) {
-        res.status(200).send(foundData);
       }
     })
   });

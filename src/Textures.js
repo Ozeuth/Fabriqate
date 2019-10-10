@@ -7,9 +7,13 @@ export default class Textures extends React.PureComponent {
     super(props);
     this.state = {
       texturePanelVisibility: 'hidden',
-      textureTypeFocal: TextureType.COLOR
+      textureTypeFocal: TextureType.COLOR,
+      textureNew: null
     };
     this.toggleTextures = this.toggleTextures.bind(this);
+    this.chooseTexture = this.chooseTexture.bind(this);
+    this.newTexture = this.newTexture.bind(this);
+    this.removeTexture = this.removeTexture.bind(this);
     this.switchTexture = this.switchTexture.bind(this);
   }
 
@@ -18,6 +22,53 @@ export default class Textures extends React.PureComponent {
     this.setState({
       texturePanelVisibility: visibility
     })
+  }
+
+  chooseTexture(event) {
+    this.setState({
+      textureNew: event.target.files[0]
+    })
+  }
+
+  newTexture() {
+    if (this.state.textureNew !== null) {
+      // TODO: Fragile dependence on meshName following `objectName_index` format
+      let lastIndex = 0;
+      for (let index = 0; index < this.props.materialPanelFocal.length; index++) {
+        if (this.props.materialPanelFocal[index] === '_') { lastIndex = index }
+      }
+      // Fix dynamic variables for callback
+      const meshName = this.props.materialPanelFocal;
+      const objectName = this.props.materialPanelFocal.substring(0, lastIndex);
+      const textureType = this.state.textureTypeFocal;
+      const textureNew = this.state.textureNew;
+      const textureIndex = this.props.materialPanelFocal.substring(lastIndex + 1);
+
+      const formData = new FormData();
+      formData.append('user', window.user);
+      formData.append('projectName', window.project);
+      formData.append('objectName', objectName);
+      formData.append('textureType', textureType);
+      formData.append('file', textureNew);
+      formData.append('textureIndex', textureIndex);
+      fetch('/newTexture', {
+        method: 'post',
+        body: formData
+      }).then(res => {
+        if (res.status === 200) {
+          const texturePath = './uploads/' + textureNew.filename;
+          window.textureFunc(window.scene, meshName, [texturePath], [textureType]);
+          this.setState({
+            textureNew: null
+          });
+        }
+      });
+    } else {
+      window.alert("Please select a file to upload")
+    }
+  }
+
+  removeTexture() {
   }
 
   switchTexture(event) {
@@ -65,7 +116,6 @@ export default class Textures extends React.PureComponent {
               (this.state.textureTypeFocal === TextureType.NORMAL ? window.textures.get(mesh).normal :
                 null)))))
       : null;
-
     return (
       <div>
         <button style={{...styles.default_button, ...{left: '10%', top: '6%'}}} onClick={this.toggleTextures}> Textures </button>
@@ -79,6 +129,11 @@ export default class Textures extends React.PureComponent {
           </div>
           <img id="texture" style={{maxHeight: '100%', maxWidth: '100%'}} src={focalTexture}
           alt={"No " + this.state.textureTypeFocal + " texture. Either upload or generate one"}/>
+          <div style={{textAlign: 'center', display: 'inline-block'}}>
+            <input type="file" name="file" onChange={this.chooseTexture}/>
+            <button id="textureAdd" onClick={this.newTexture}>Add Texture</button>
+            <button id="textureRemove" onClick={this.removeTexture}>Remove</button>
+          </div>
         </div>
       </div>
     );

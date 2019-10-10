@@ -151,6 +151,8 @@ export default class Render extends React.Component {
         const meshes = window.objects.get(objectName);
         window.objects.delete(objectName);
         meshes.forEach(mesh => {
+          // Textures should be deleted from DB
+          window.textures.delete(mesh);
           mesh.dispose();
         });
         this.setState({
@@ -391,7 +393,7 @@ export default class Render extends React.Component {
                       default:
                     }
                   } else {
-                    texturePath = './uploads' + textureName;
+                    texturePath = './uploads/' + textureName;
                   }
                   texturePaths.push(texturePath);
                   textureTypes.push(textureType);
@@ -424,7 +426,7 @@ export default class Render extends React.Component {
         <button id="objectToggleButton" style = {{...styles.default_button, ...{right: '10%', top: '6%'}}} onClick={this.toggleObjects}> Objects </button>
         <div id="objectsPanel" style = {{...styles.panel, ...{right: '10%', top: 'calc(6% + 25px)', visibility: this.state.objectPanelVisibility}}}>
           <input type="file" name="file" onChange={this.chooseObject}/>
-          <button id="objectAddButton" style={{...styles.default_button, ...{right: '0%', top: '0%'}}} onClick={this.newObject}> Add Object </button>
+          <button id="objectAdd" style={{...styles.default_button, ...{right: '0%', top: '0%'}}} onClick={this.newObject}> Add Object </button>
           <div id = "object">
             <ul id = "objectList" style={{ listStyleType: "none", margin: '0'}}>
               {this.state.objectPanelContent.map(objectName =>

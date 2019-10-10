@@ -56,7 +56,7 @@ export const styles = {
     borderRadius: "4px",
     border: "1px solid #D0D0D0",
     overflow: "auto",
-    backgroundColor: ButtonColor.INACTIVE
+    backgroundColor: ButtonColor.DOUBLE_INACTIVE
   },
 };
 
@@ -423,8 +423,8 @@ export default class Render extends React.Component {
           <Engine canvasId="sample-canvas">
             <Scene onSceneMount={this.make}/>
           </Engine>
-        <button id="objectToggleButton" style = {{...styles.default_button, ...{right: '10%', top: '6%'}}} onClick={this.toggleObjects}> Objects </button>
-        <div id="objectsPanel" style = {{...styles.panel, ...{right: '10%', top: 'calc(6% + 25px)', visibility: this.state.objectPanelVisibility}}}>
+        <button id="objectToggleButton" style = {{...styles.default_button, ...{right: '5%', top: '6%'}}} onClick={this.toggleObjects}> Objects </button>
+        <div id="objectsPanel" style = {{...styles.panel, ...{right: '5%', top: 'calc(6% + 25px)', visibility: this.state.objectPanelVisibility}}}>
           <input type="file" name="file" onChange={this.chooseObject}/>
           <button id="objectAdd" style={{...styles.default_button, ...{right: '0%', top: '0%'}}} onClick={this.newObject}> Add Object </button>
           <div id = "object">
@@ -461,7 +461,7 @@ export default class Render extends React.Component {
             </ul>
           </div>
         </div>
-        <button id="downloadButton" style={{...styles.default_button, ...{right: '10%', bottom: '6%'}}}> Download All </button>
+        <button id="downloadButton" style={{...styles.default_button, ...{right: '5%', bottom: '6%'}}}> Download All </button>
         <Textures materialPanelFocal = {this.state.materialPanelFocal}/>
       </div>
     );

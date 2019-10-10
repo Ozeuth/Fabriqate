@@ -118,8 +118,8 @@ export default class Textures extends React.PureComponent {
       : null;
     return (
       <div>
-        <button style={{...styles.default_button, ...{left: '10%', top: '6%'}}} onClick={this.toggleTextures}> Textures </button>
-        <div id="texturesPanel" style={{...styles.panel, ...{left: '10%', top: 'calc(6% + 25px)', visibility: this.state.texturePanelVisibility}}}>
+        <button style={{...styles.default_button, ...{left: '5%', top: '6%'}}} onClick={this.toggleTextures}> Textures </button>
+        <div id="texturesPanel" style={{...styles.panel, ...{left: '5%', top: 'calc(6% + 25px)', visibility: this.state.texturePanelVisibility}}}>
           <div id="textureButtons" style={{textAlign: 'center', display: 'inline-block'}}>
             <button id="colorButton" style={styles.small_button} onClick={this.switchTexture}>Color</button>
             <button id="aoButton" style={styles.small_button} onClick={this.switchTexture}>AO</button>
@@ -131,9 +131,18 @@ export default class Textures extends React.PureComponent {
           alt={"No " + this.state.textureTypeFocal + " texture. Either upload or generate one"}/>
           <div style={{textAlign: 'center', display: 'inline-block'}}>
             <input type="file" name="file" onChange={this.chooseTexture}/>
-            <button id="textureAdd" onClick={this.newTexture}>Add Texture</button>
-            <button id="textureRemove" onClick={this.removeTexture}>Remove</button>
+            <button id="textureAdd" style={styles.small_button} onClick={this.newTexture}>Add Texture</button>
+            <button id="textureRemove" style={styles.small_button} onClick={this.removeTexture}>Remove</button>
           </div>
+          <div id="slider_wrapper" style={{display: 'block'}}>
+            <input id="slider" type="range" min={2} max={18} defaultValue={10}/>
+            <label id="slider_label" htmlFor="slider">Brightness</label>
+            <input id="slider" type="range" min={2} max={18} defaultValue={10}/>
+            <label id="slider_label" htmlFor="slider">Contrast</label>
+            <input id="slider" type="range" min={2} max={18} defaultValue={10}/>
+            <label id="slider_label" htmlFor="slider">Saturation</label>
+          </div>
+          <button id="textureGenerate" style={styles.small_button}>Generate Remaining</button>
         </div>
       </div>
     );

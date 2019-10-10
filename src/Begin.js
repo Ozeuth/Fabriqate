@@ -5,6 +5,7 @@ export const ButtonColor = {
   DOUBLE_ACTIVE: "#404040",
   ACTIVE: "#808080",
   INACTIVE: "#D0D0D0",
+  DOUBLE_INACTIVE: "#F8F8F8"
 };
 
 let styles = {

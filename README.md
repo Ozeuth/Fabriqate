@@ -1,19 +1,21 @@
 ![logo](./asset/Fabriqate_0.png)
-![1](./asset/Fabriqate_1.png)
+![1](./asset/Fabriqate_1.jpg)
 
 An artist-centered tool to aid in the online, automatic generation of game-ready textures from user photos.
 
 This project was originally created as part of Imperial College London's 2nd year web applications project, and is currently being developed as a standalone product.
+
 Original Development:
 [Anindita Ghost](https://github.com/anindita), [Zelie Everest](https://github.com/Zeverest), [Rasika Navarange](https://github.com/rasnav99) and [Penelope Tay](https://github.com/Ozeuth).
+
 Current Development:
 [Penelope Tay](https://github.com/Ozeuth)
 
 ### Description
-![2](./asset/Fabriqate_2.png)
+![2](./asset/Fabriqate_2.jpg)
 In Games Development, different texture maps give 3D models unique properties, contributing to the overall detail and realism of the game. These textures are often hard to manually generate, or require software locked behind paywalls or large downloads.
 
-![3](./asset/Fabriqate_3.png)
+![3](./asset/Fabriqate_3.jpg)
 As an artist, this tool lets you generate all these different textures from one base image. Simply upload an image, that will serve as the base color texture. Then, set Fabriqate to automatically generate the remaining textures. Based on its analysis of your texture, it will generate the following range of textures: ambient occlusion, roughness, metal and normal. 
 These images can then be downloaded and immediately plugged into your game.
 

@@ -6,7 +6,7 @@ An artist-centered tool to aid in the online, automatic generation of game-ready
 This project was originally created as part of Imperial College London's 2nd year web applications project, and is currently being developed as a standalone product.
 
 Original Development:
-[Anindita Ghost](https://github.com/anindita), [Zelie Everest](https://github.com/Zeverest), [Rasika Navarange](https://github.com/rasnav99), [Penelope Tay](https://github.com/Ozeuth).
+[Anindita Ghost](https://github.com/anindita), [Zelie Everest](https://github.com/Zeverest), [Rasika Navarange](https://github.com/rasikanavarange), [Penelope Tay](https://github.com/Ozeuth).
 
 Current Development and [3D Models](https://www.artstation.com/ozeuth):
 [Penelope Tay](https://github.com/Ozeuth)
